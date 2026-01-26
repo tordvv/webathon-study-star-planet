@@ -1,63 +1,58 @@
-# Webathon 2025
+# Webathon 2026
 
-Velkommen til Webkoms episke hackathon 2025!
+Klar for årets arrangement? Etter stor suksess med Webathon 2025 er vi tilbake med årets utgave av den legendariske kodekonkurransen! 🚀
 
-- **📍 Hvor?** Programmerbar på Høytek
-- **📃 Hva?** [Se reglene for mer info om hva dere skal gjøre](#regler)
-- **🕙 Når?** Fra fredag 28. mars til søndag 30. mars
-- **🍕 Mat?** Ja! Det blir mat fredag og lørdag
-- **🎁 Premie?** Dritkul premie til vinnerlaget!
+## Hva?
+
+Webathon er Webkom sin årlige kodekunkurranse (hackathon) som går ut på å lage best mulig prosjekt, gitt et tema/stikkord, i løpet av en helg. Deltagere jobber i lag og presenterer prosjektet sitt på søndagen for en juri.
+
+Laget som vinner får en **heftig premie** og blir lagt til i Webathons hall of fame. 🏆
+
+## Når og hvor?
+
+Vi starter med et pang fredag 10. april og avslutter med presentasjoner på søndagen. Klokkeslett kommer senere.
+
+Alt vil skje på **lesesalen på Høytek 📍**.
 
 ## Opplegg
 
-### Oppstart
+Tider kommer senere
 
-Vi starter med et smell **fredag 28. mars 17:00**. Det blir først en kort presentasjon om regler ([står også under](#regler)) og diverse info om hackathonet. I tillegg presenterer vi tre stikkord som dere skal basere prosjektene deres rundt. Så blir det en liten introduksjon til react og nextjs for de som ønsker det. Baren åpner også etterhvert. Se [hvordan man kommer i gang](#komme-i-gang).
+### Fredag
 
-Gjennom hele helgen vil det være medlemmer av Webkom til stede for å hjelpe og svare på spørsmål.
+- **??:??**: Velkommen og introduksjon. Webkom presenterer årets regler og avslører tema!
+- **??:??**: Pizza! 🍕
 
-### Presentasjon
+### Lørdag
 
-På søndag 12:00 skal alle presentere prosjektene sine og de blir vurdert av en juri. Vinnerlaget får en heftig premie!
+- **??:?? - ??:??**: Kjernetid. Vi oppfrodrer alle til å være på skolen og grinde🔥 Webkom stiller også opp for å hjelpe.
+- **??:??**: Pizza! 🍕
+
+### Søndag
+
+- **??:??**: Alle presenterer prosjektet sitt foran juri og resten. Et lag blir kåret som vinnere av Webathon 2026 👑
 
 ## Regler
 
-1. Man skal jobbe i lag. Lag må ha to til fire medlemmer. Man kan bestemme lag på forhånd, eller møte opp og få tildelt et lag ved oppstart.
-2. Hvert lag skal lage og presentere et produkt. Det kan være hva som helst, uten om to krav:
-   - Det **må** være noe grafisk (må være presentabelt).
-     - Spill, nettside, simulasjon, visualisering, TUI app, osv.
-   - Det **må** være relevant til tre stikkord som blir annonsert ved oppstart.
-3. Man kan bruke valgfritt språk.
-4. Det er lov å bruke rammeverk og biblioteker.
-5. Man må levere prosjektet **innen 12:00 på søndag**. Se [hvordan levere prosjektet](#levering).
-6. Prosjektet sin README skal inneholde følgende:
-   - Gruppenavn og navn på medlemmer
-   - Hva idéen er og hvordan dere har implementert den
-   - Ikke et krav, men fint om det inneholder screenshots også
+Regler kan endres innen arrangement start.
+
+1. Alle deltagere skal være i et lag på 2-5 medlemmer. Man kan møte opp uten lag og bli tildelt et ved start.
+2. Hvert lag skal utvikle et produkt som skal presenteres. Det har to krav:
+    - Det må være grafisk (spill, nettside, tui, gui, osv)
+    - Det må være relevant til tema/stikkord.
+3. Man kan bruke valgfritt språk, rammeverk, og biblioteker.
+4. Prosjektet skal pushes til en fork av [Webathon repoet](https://github.com/echo-webkom/webathon).
+5. README.md i repoet skal inneholde:
+    - Gruppenavn
+    - Kort beskrivelse av prosjektet (idé, hvordan dere implementerte det, osv)
+    - Screenshots
 
 ## Vurdering
 
-Hvert prosjekt blir vurdert av en juri bestående av Webkom og Bekk. Prosjektene blir vurdert på kriteriene under. Hver kriterie har en maks antall poeng. Den samlede scoren for hver kriterie fra hvert jurimedlem er den totale scoren til prosjektet.
+Prosjektene blir vurdert av en juri bestående av Webkom medlemmer, forelesere, og evt andre gjester. Dere blir vurdert på:
 
-- **Idé (10):** Hvor unik idéen er. Hvor godt den er gjennomført.
+- **Idé**: Hvor god/unik idéen er og hvor bra dere har gjennomført den. Dette er det viktigste.
+- **Kode**: Hvor mye som er laget selv og om dere har kreative løsninger.
+- **Presentasjon**: Hvor bra prosjektet blir presentert.
+- **Tema**: Hvor godt passer prosjektet årets tema? Er det en smart eller kreativ tolkning?
 
-- **Kode (5):** Hvor mye som er laget selv. Hvor kreative løsningene er.
-
-- **Presentasjon (5):** Hvor bra idéen og prosjektet som helhet ble presentert.
-
-- **Stikkord (5):** Hvor unik og kreativ tolkningen av stikkordene er.
-
-## Komme i gang
-
-Fork dette repoet (må være public). Husk å skrive om README etter regel 6!
-
-## Levering
-
-Prosjektet skal leveres **innen 12:00 på søndag**. Lag en tag med navnet "innlevering" og push til repoet.
-
-### Hvordan lage tag
-
-```sh
-git tag innlevering
-git push --tags
-```
