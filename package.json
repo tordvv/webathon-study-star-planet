@@ -8,6 +8,7 @@
   },
   "keywords": [],
   "author": "",
+  "type": "module",
   "license": "ISC",
   "devDependencies": {
     "typescript": "^6.0.2"
