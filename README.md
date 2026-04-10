@@ -22,4 +22,4 @@
 ## Bilder
 
 \<screenshots av prosjektet (blir også postet på webathon siden på echo.uib.no)>
-
+![Midlertidig home-screen](ssp.jpg)
