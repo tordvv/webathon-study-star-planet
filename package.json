@@ -4,7 +4,7 @@
   "description": "1. Fork dette repoet til en av gruppemedlemene sin GitHub bruker.\r 2. Send linken til repoet i Discord og ping @Webkom\r 3. Slett alt i denne READMEen unntatt malen under (fyll den ut).",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "tsx src/index.ts"
   },
   "keywords": [],
   "author": "",
@@ -12,6 +12,8 @@
   "license": "ISC",
   "devDependencies": {
     "@types/express": "^5.0.6",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^6.0.2"
   },
   "dependencies": {
