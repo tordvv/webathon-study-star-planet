@@ -4,7 +4,7 @@
   "description": "1. Fork dette repoet til en av gruppemedlemene sin GitHub bruker.\r 2. Send linken til repoet i Discord og ping @Webkom\r 3. Slett alt i denne READMEen unntatt malen under (fyll den ut).",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/app.ts"
   },
   "keywords": [],
   "author": "",
