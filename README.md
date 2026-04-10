@@ -1,33 +1,19 @@
 # Webathon 2026
 
-## Kom i gang
+# \StudyStarPlanet
 
-1. Fork dette repoet til en av gruppemedlemene sin GitHub bruker.
-2. Send linken til repoet i Discord og ping @Webkom
-3. Slett alt i denne READMEen unntatt malen under (fyll den ut).
-
-## Levere / Presentere
-
-1. Pass på at dere har pushet alt til `main` innen 12:00 søndag.
-2. Lag en presentasjon av prosjektet, hva dere har gjort, hva ideen er, osv.
-
-## Mal
-
----
-
-# \<Prosjektnavn>
-
-\<Gruppenavn>
+\StudyStarPlanet AS
 
 ## Medlemmer
 
-- \<navn>
-- \<navn>
-- \<navn>
+- \Tord
+- \Olav
+- \Erik
+- \Siren
 
 ## Beskrivelse
 
-\<beskrivelse av prosjektet (ide, hva det løser osv)?>
+\ Loosely inspirert av MovieStarPlanet og Pokémon. Istedenfor å lure på "Er det kaffe igjen på lesesalen nå?" hver fredag så kan du sjekke status med å gå bort til kaffemaskinen på den virtuelle lesesalen og sjekke status. Last opp når du tar oppvask, lager kaffe, når du er til stede på sal osv. Dine handlinger blir belønnet med tokens som du kan bruke i minispillene på StudyStarPlanet aka. din virtuelle lesesal! Sammenlign din progress med de andre, la alle se at du er tidenes SALTRØKKER.
 
 ## Kjøre
 
