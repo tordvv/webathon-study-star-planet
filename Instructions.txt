@@ -1,0 +1,11 @@
+Generate a object orientet framwork for a webbased videogame. where you move around a stdy hall ( LesesalBirdView.png). 
+Clients should log on to and controll a player (Student.png), camera following ht player.
+The database should track if the user has the website open and if it is at a certain geolocation.
+The user should be able to interact with different elements within the studyhall, setup a robust framwork so we the developers can exsted with more tasks. ex, make coffe, sit at table. 
+The databse should track what tasks are done when and for how long.
+Add visual elements such as boxes when a uaser interact with items, time for how long the user have sat at a table.
+When the coffee machine was last run. 
+
+Document code well, use typescript with node js
+
+Good luck

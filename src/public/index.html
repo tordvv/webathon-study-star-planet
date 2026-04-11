@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudyStar Planet</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0f172a;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* ── Game canvas ────────────────────────────────────────────────────── */
+    #game-canvas {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      image-rendering: pixelated;
+    }
+
+    /* ── Login overlay ───────────────────────────────────────────────────── */
+    #login-overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(ellipse at center, #1e293b 0%, #0f172a 100%);
+      z-index: 10;
+    }
+
+    .login-box {
+      background: rgba(30, 41, 59, 0.95);
+      border: 1px solid rgba(255, 220, 50, 0.3);
+      border-radius: 16px;
+      padding: 48px 40px;
+      width: 360px;
+      text-align: center;
+      box-shadow: 0 0 60px rgba(255, 220, 50, 0.08);
+    }
+
+    .login-box .emoji {
+      font-size: 56px;
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    .login-box h1 {
+      color: #facc15;
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .login-box p.subtitle {
+      color: rgba(255,255,255,0.45);
+      font-size: 13px;
+      margin-bottom: 28px;
+    }
+
+    #username-input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1.5px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 14px;
+    }
+
+    #username-input:focus {
+      border-color: #facc15;
+    }
+
+    #username-input::placeholder {
+      color: rgba(255,255,255,0.3);
+    }
+
+    #join-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      background: #facc15;
+      color: #0f172a;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    #join-btn:hover:not(:disabled) {
+      background: #fde047;
+      transform: translateY(-1px);
+    }
+
+    #join-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    #status-msg {
+      margin-top: 16px;
+      color: rgba(255,255,255,0.45);
+      font-size: 13px;
+      min-height: 18px;
+    }
+
+    .controls-hint {
+      margin-top: 24px;
+      color: rgba(255,255,255,0.25);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .controls-hint kbd {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: monospace;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Login screen -->
+  <div id="login-overlay">
+    <div class="login-box">
+      <span class="emoji">📚</span>
+      <h1>StudyStar Planet</h1>
+      <p class="subtitle">Virtual Study Hall · Real Productivity</p>
+
+      <input
+        type="text"
+        id="username-input"
+        placeholder="Enter your name"
+        maxlength="24"
+        autocomplete="off"
+      />
+
+      <button id="join-btn">Enter Study Hall</button>
+
+      <p id="status-msg"></p>
+
+      <div class="controls-hint">
+        <kbd>W A S D</kbd> or <kbd>↑ ← ↓ →</kbd> to move
+        &nbsp;·&nbsp;
+        <kbd>E</kbd> to interact
+      </div>
+    </div>
+  </div>
+
+  <!-- Game canvas (hidden until logged in) -->
+  <canvas id="game-canvas"></canvas>
+
+  <!-- Compiled client bundle (built by esbuild) -->
+  <script src="/scripts/bundle.js"></script>
+</body>
+</html>

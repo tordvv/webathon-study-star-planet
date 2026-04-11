@@ -4,7 +4,10 @@
   "description": "1. Fork dette repoet til en av gruppemedlemene sin GitHub bruker.\r 2. Send linken til repoet i Discord og ping @Webkom\r 3. Slett alt i denne READMEen unntatt malen under (fyll den ut).",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx src/app.ts"
+    "build:client": "esbuild src/client/main.ts --bundle --outfile=src/public/scripts/bundle.js --platform=browser --format=iife",
+    "dev": "npm run build:client && tsx src/app.ts",
+    "watch:client": "esbuild src/client/main.ts --bundle --outfile=src/public/scripts/bundle.js --platform=browser --format=iife --watch",
+    "start": "tsx src/app.ts"
   },
   "keywords": [],
   "author": "",
@@ -12,11 +15,15 @@
   "license": "ISC",
   "devDependencies": {
     "@types/express": "^5.0.6",
+    "@types/node": "^25.6.0",
+    "@types/ws": "^8.18.1",
+    "esbuild": "^0.28.0",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2"
   },
   "dependencies": {
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "ws": "^8.20.0"
   }
 }

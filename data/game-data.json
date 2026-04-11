@@ -1,0 +1,102 @@
+{
+  "sessions": [
+    {
+      "playerId": "v4qaunet",
+      "username": "Ola Nordmann",
+      "isOnline": false,
+      "joinedAt": 1775926322446,
+      "lastSeen": 1775926482104,
+      "geolocation": {
+        "latitude": 60.38125506656285,
+        "longitude": 5.331895062621924,
+        "accuracy": 35
+      }
+    }
+  ],
+  "tasks": [
+    {
+      "id": "v4qaunet_sit_1775926338036",
+      "playerId": "v4qaunet",
+      "username": "Ola Nordmann",
+      "taskType": "sit",
+      "targetId": "table_1",
+      "startedAt": 1775926338036,
+      "endedAt": 1775926340776,
+      "duration": 2740
+    },
+    {
+      "id": "v4qaunet_sit_1775926342570",
+      "playerId": "v4qaunet",
+      "username": "Ola Nordmann",
+      "taskType": "sit",
+      "targetId": "table_1",
+      "startedAt": 1775926342570,
+      "endedAt": 1775926353525,
+      "duration": 10955
+    },
+    {
+      "id": "v4qaunet_coffee_1775926363170",
+      "playerId": "v4qaunet",
+      "username": "Ola Nordmann",
+      "taskType": "coffee",
+      "targetId": "coffee_machine",
+      "startedAt": 1775926363170,
+      "endedAt": 1775926363170,
+      "duration": 0
+    },
+    {
+      "id": "v4qaunet_coffee_1775926368169",
+      "playerId": "v4qaunet",
+      "username": "Ola Nordmann",
+      "taskType": "coffee",
+      "targetId": "coffee_machine",
+      "startedAt": 1775926368169,
+      "endedAt": 1775926368169,
+      "duration": 0
+    },
+    {
+      "id": "v4qaunet_sit_1775926454850",
+      "playerId": "v4qaunet",
+      "username": "Ola Nordmann",
+      "taskType": "sit",
+      "targetId": "table_1",
+      "startedAt": 1775926454850,
+      "endedAt": 1775926456960,
+      "duration": 2110
+    },
+    {
+      "id": "v4qaunet_sit_1775926457470",
+      "playerId": "v4qaunet",
+      "username": "Ola Nordmann",
+      "taskType": "sit",
+      "targetId": "table_1",
+      "startedAt": 1775926457470,
+      "endedAt": 1775926457837,
+      "duration": 367
+    },
+    {
+      "id": "v4qaunet_sit_1775926458419",
+      "playerId": "v4qaunet",
+      "username": "Ola Nordmann",
+      "taskType": "sit",
+      "targetId": "table_1",
+      "startedAt": 1775926458419,
+      "endedAt": 1775926458720,
+      "duration": 301
+    },
+    {
+      "id": "v4qaunet_sit_1775926458923",
+      "playerId": "v4qaunet",
+      "username": "Ola Nordmann",
+      "taskType": "sit",
+      "targetId": "table_1",
+      "startedAt": 1775926458923,
+      "endedAt": 1775926461052,
+      "duration": 2129
+    }
+  ],
+  "coffeeMachine": {
+    "lastRunAt": 1775926368169,
+    "runBy": "Ola Nordmann"
+  }
+}
