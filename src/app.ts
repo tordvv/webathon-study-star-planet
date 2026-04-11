@@ -6,12 +6,12 @@ const app = express();
 const port = 3000
 
 app.use(express.json())
-app.use(express.static(path.join(process.cwd(), "src", "public")))
-
-const scoreFile = path.join(process.cwd(), "score.json")
+app.use(express.static(path.join(import.meta.dirname, "public")))
+console.log(path.join(import.meta.dirname, "public"))
+const scoreFile = path.join(import.meta.dirname, "score.json")
 
 app.get("/", (req, res) => {
-    res.sendFile(path.join(process.cwd(), "src", "pages", "index.html"))
+    res.sendFile(path.join(import.meta.dirname, "pages", "index.html"))
 })
 
 app.get("/score", (req, res) => {

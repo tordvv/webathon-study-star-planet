@@ -1,75 +1,21 @@
+import Camera from "./Camera.js";
+import GameWorld from "./GameWorld.js";
+
 const canvas = document.getElementById("game-window") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
-interface Box {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    type: number; // 1 for add, -1 for subtract
-}
+const backgroundImage = document.createElement("img");
+backgroundImage.onload = (e) => ctx.drawImage(backgroundImage, 0, 0)
+backgroundImage.width = 400
+backgroundImage.height = 400
+backgroundImage.src = "./images/LesesalBirdView.png"
 
-// Figure position
-let x = canvas.width / 2;
-let y = canvas.height / 2;
-const speed = 5;
+const gameWorld = new GameWorld(backgroundImage)
+const camera = new Camera(gameWorld, 200, 200, 50, 50, 1)
 
-// Score
-let score = 0;
-
-// Boxes
-const boxes: Box[] = [];
-const numBoxes = 5;
-
-function createBox(): Box {
-    return {
-        x: Math.random() * (canvas.width - 50),
-        y: Math.random() * (canvas.height - 50),
-        width: 50,
-        height: 50,
-        type: Math.random() > 0.5 ? 1 : -1
-    };
-}
-
-function initBoxes(): void {
-    for (let i = 0; i < numBoxes; i++) {
-        boxes.push(createBox());
-    }
-}
-
-// Key states
-const keys: { [key: string]: boolean } = {};
-
-function draw(): void {
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Draw boxes
-    boxes.forEach(box => {
-        ctx.fillStyle = box.type === 1 ? "green" : "red";
-        ctx.fillRect(box.x, box.y, box.width, box.height);
-        ctx.fillStyle = "white";
-        ctx.font = "20px Arial";
-        ctx.fillText(box.type > 0 ? "+" : "-", box.x + 20, box.y + 30);
-    });
-
-    // Draw figure (a circle)
-    ctx.fillStyle = "red";
-    ctx.beginPath();
-    ctx.arc(x, y, 20, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Draw score
-    ctx.fillStyle = "black";
-    ctx.font = "24px Arial";
-    ctx.fillText(`Score: ${score}`, 10, 30);
-}
-
-function collides(box: Box): boolean {
-    return x + 20 > box.x && x - 20 < box.x + box.width &&
-           y + 20 > box.y && y - 20 < box.y + box.height;
-}
-
+//camera.drawToCanvas(ctx)
+//navigator.geolocation.getCurrentPosition()
+/*
 function update(): void {
     // Update position based on keys
     if (keys["ArrowUp"]) y -= speed;
@@ -138,3 +84,4 @@ initBoxes();
 loadScore().then(() => {
     gameLoop();
 });
+*/
