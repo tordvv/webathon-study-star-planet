@@ -15,6 +15,7 @@ import { Entity } from "./Entity.js";
 import type { Camera } from "../Camera.js";
 import type { InputManager } from "../InputManager.js";
 import type { NetworkClient } from "../network/NetworkClient.js";
+import type { MapBounds } from "../MapBounds.js";
 
 const PLAYER_SPEED = 160;         // pixels per second
 const POSITION_SEND_INTERVAL = 50; // ms between position broadcasts
@@ -54,14 +55,13 @@ export class Player extends Entity {
   // ── Movement + networking ────────────────────────────────────────────────────
 
   /**
-   * Move the player based on held keys and clamp to world bounds.
+   * Move the player based on held keys and clamp to the given bounding box.
    * Also throttles position updates to the server.
    *
    * @param dt     Delta time in seconds
-   * @param worldW Total world width in pixels
-   * @param worldH Total world height in pixels
+   * @param bounds Walkable area in world-space (see MapBounds.ts)
    */
-  move(dt: number, worldW: number, worldH: number): void {
+  move(dt: number, bounds: MapBounds): void {
     let vx = 0;
     let vy = 0;
 
@@ -79,11 +79,11 @@ export class Player extends Entity {
     this.x += vx * PLAYER_SPEED * dt;
     this.y += vy * PLAYER_SPEED * dt;
 
-    // Clamp to world bounds
+    // Clamp to the walkable bounding box
     const hw = this.width / 2;
     const hh = this.height / 2;
-    this.x = Math.max(hw, Math.min(worldW - hw, this.x));
-    this.y = Math.max(hh, Math.min(worldH - hh, this.y));
+    this.x = Math.max(bounds.minX + hw, Math.min(bounds.maxX - hw, this.x));
+    this.y = Math.max(bounds.minY + hh, Math.min(bounds.maxY - hh, this.y));
 
     // Throttled position broadcast
     this.timeSinceLastSend += dt * 1000;

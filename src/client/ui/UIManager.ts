@@ -35,7 +35,8 @@ export class UIManager {
     nearbyObject: InteractableObject | null,
     activeTables: Table[],
     coffeeMachine: CoffeeMachineInfo,
-    onlinePlayers: OnlinePlayer[]
+    onlinePlayers: OnlinePlayer[],
+    tokens: number
   ): void {
     ctx.save();
 
@@ -43,6 +44,8 @@ export class UIManager {
     this.drawActiveSittingTimer(ctx, activeTables);
     this.drawCoffeeStatus(ctx, coffeeMachine);
     this.drawPlayerList(ctx, onlinePlayers);
+    this.drawTokenCounter(ctx, tokens);
+    this.drawTabHint(ctx);
 
     ctx.restore();
   }
@@ -187,6 +190,35 @@ export class UIManager {
       const label = p.taskLabel ? `${p.username} ${p.taskLabel}` : p.username;
       ctx.fillText(`• ${label}`, x + 10, py);
     }
+  }
+
+  /**
+   * Token balance counter in the top-left corner:
+   *   🪙 42
+   */
+  private drawTokenCounter(ctx: CanvasRenderingContext2D, tokens: number): void {
+    ctx.save();
+    ctx.font = "bold 16px sans-serif";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    ctx.fillStyle = "rgba(0,0,0,0.45)";
+    ctx.fillText(`🪙 ${tokens}`, 13, 13);
+    ctx.fillStyle = "#facc15";
+    ctx.fillText(`🪙 ${tokens}`, 12, 12);
+    ctx.restore();
+  }
+
+  /**
+   * Subtle hint reminding the player they can press Tab for their profile.
+   */
+  private drawTabHint(ctx: CanvasRenderingContext2D): void {
+    ctx.save();
+    ctx.font = "11px sans-serif";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    ctx.fillStyle = "rgba(255,255,255,0.25)";
+    ctx.fillText("Tab — Profile", 12, 32);
+    ctx.restore();
   }
 }
 

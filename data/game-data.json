@@ -11,6 +11,54 @@
         "longitude": 5.331895062621924,
         "accuracy": 35
       }
+    },
+    {
+      "playerId": "3vrh4yfc",
+      "username": "Erik",
+      "isOnline": false,
+      "joinedAt": 1775929119331,
+      "lastSeen": 1775929273507,
+      "geolocation": {
+        "latitude": 60.38130840347394,
+        "longitude": 5.331814471478973,
+        "accuracy": 35
+      }
+    },
+    {
+      "playerId": "p0wrmcpt",
+      "username": "Erik",
+      "isOnline": false,
+      "joinedAt": 1775929278459,
+      "lastSeen": 1775929446234,
+      "geolocation": {
+        "latitude": 60.381263487903,
+        "longitude": 5.331842222590134,
+        "accuracy": 35
+      }
+    },
+    {
+      "playerId": "61ymwhmx",
+      "username": "Erik",
+      "isOnline": false,
+      "joinedAt": 1775929450056,
+      "lastSeen": 1775929724295,
+      "geolocation": {
+        "latitude": 60.381263487903,
+        "longitude": 5.331842222590134,
+        "accuracy": 35
+      }
+    },
+    {
+      "playerId": "jz199057",
+      "username": "Erik",
+      "isOnline": true,
+      "joinedAt": 1775929728137,
+      "lastSeen": 1775929728137,
+      "geolocation": {
+        "latitude": 60.38132336802425,
+        "longitude": 5.331737551587148,
+        "accuracy": 35
+      }
     }
   ],
   "tasks": [
@@ -93,10 +141,57 @@
       "startedAt": 1775926458923,
       "endedAt": 1775926461052,
       "duration": 2129
+    },
+    {
+      "id": "3vrh4yfc_sit_1775929132608",
+      "playerId": "3vrh4yfc",
+      "username": "Erik",
+      "taskType": "sit",
+      "targetId": "table_1",
+      "startedAt": 1775929132608,
+      "endedAt": 1775929133708,
+      "duration": 1100,
+      "tokensEarned": 0
+    },
+    {
+      "id": "3vrh4yfc_coffee_1775929136679",
+      "playerId": "3vrh4yfc",
+      "username": "Erik",
+      "taskType": "coffee",
+      "targetId": "coffee_machine",
+      "startedAt": 1775929136679,
+      "endedAt": 1775929136679,
+      "duration": 0,
+      "tokensEarned": 1
+    },
+    {
+      "id": "3vrh4yfc_sit_1775929149745",
+      "playerId": "3vrh4yfc",
+      "username": "Erik",
+      "taskType": "sit",
+      "targetId": "table_1",
+      "startedAt": 1775929149745,
+      "endedAt": 1775929178768,
+      "duration": 29023,
+      "tokensEarned": 0
+    },
+    {
+      "id": "3vrh4yfc_sit_1775929184995",
+      "playerId": "3vrh4yfc",
+      "username": "Erik",
+      "taskType": "sit",
+      "targetId": "table_1",
+      "startedAt": 1775929184995,
+      "endedAt": 1775929273506,
+      "duration": 88511,
+      "tokensEarned": 0
     }
   ],
   "coffeeMachine": {
-    "lastRunAt": 1775926368169,
-    "runBy": "Ola Nordmann"
+    "lastRunAt": 1775929136680,
+    "runBy": "Erik"
+  },
+  "tokens": {
+    "erik": 1
   }
 }

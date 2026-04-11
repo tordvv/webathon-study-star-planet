@@ -1,15 +1,15 @@
 /**
- * Game is the top-level controller that ties all systems together.
+ * Game — top-level controller that ties all systems together.
  *
  * Lifecycle:
  *   1. new Game(canvas, username, geolocation)
- *   2. await game.init()   — loads assets, connects to server
- *   3. game.start()        — begins the requestAnimationFrame loop
+ *   2. await game.init()
+ *   3. game.start()
  *
- * The Game class owns:
- *   - The render loop
- *   - NetworkClient subscriptions (bridges network → scene state)
- *   - Interaction handling (player presses E)
+ * Overlay state machine (only one overlay active at a time):
+ *   none → profile  (Tab)
+ *   none → blackjack (E at gambling table)
+ *   profile/blackjack → none (Tab / Esc)
  */
 
 import { Camera } from "./Camera.js";
@@ -17,9 +17,13 @@ import { InputManager } from "./InputManager.js";
 import { Scene } from "./Scene.js";
 import { Player } from "./entities/Player.js";
 import { UIManager } from "./ui/UIManager.js";
+import { ProfileMenu } from "./ui/ProfileMenu.js";
+import { BlackjackGame } from "./ui/BlackjackGame.js";
 import { NetworkClient } from "./network/NetworkClient.js";
 import type { InteractableObject } from "./entities/InteractableObject.js";
-import type { GeolocationData, CoffeeMachineInfo } from "./types.js";
+import type { GeolocationData, CoffeeMachineInfo, PlayerStats } from "./types.js";
+
+type Overlay = "none" | "profile" | "blackjack";
 
 export class Game {
   private canvas: HTMLCanvasElement;
@@ -33,18 +37,25 @@ export class Game {
   private scene!: Scene;
   private player!: Player;
   private ui!: UIManager;
+  private profileMenu!: ProfileMenu;
+  private blackjack!: BlackjackGame;
 
   private coffeeMachineInfo: CoffeeMachineInfo = { lastRunAt: null, runBy: null };
   private nearbyObject: InteractableObject | null = null;
+  private tokens: number = 0;
+  private stats: PlayerStats = {
+    sittingTodayMs: 0,
+    sittingThisYearMs: 0,
+    coffeesMadeToday: 0,
+    coffeesMadeThisYear: 0,
+    tokens: 0,
+  };
 
+  private overlay: Overlay = "none";
   private lastTimestamp: number = 0;
   private animFrameId: number = 0;
 
-  constructor(
-    canvas: HTMLCanvasElement,
-    username: string,
-    geolocation?: GeolocationData
-  ) {
+  constructor(canvas: HTMLCanvasElement, username: string, geolocation?: GeolocationData) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d")!;
     this.username = username;
@@ -55,76 +66,74 @@ export class Game {
     this.net = new NetworkClient();
   }
 
-  // ── Initialisation ───────────────────────────────────────────────────────────
+  // ── Initialisation ────────────────────────────────────────────────────────────
 
-  /**
-   * Load sprites, connect to WebSocket, and wait for the server welcome.
-   * Resolves once the player has been assigned an ID and the scene is set up.
-   */
   async init(): Promise<void> {
-    // Load image assets in parallel
-    const [bgImage, playerSprite] = await Promise.allSettled([
+    const [bgResult, spriteResult] = await Promise.allSettled([
       loadImage("/assets/LesesalBirdView.png"),
       loadImage("/assets/Student.png"),
     ]);
 
-    const bg = bgImage.status === "fulfilled" ? bgImage.value : null;
-    const sprite = playerSprite.status === "fulfilled" ? playerSprite.value : null;
+    const bg = bgResult.status === "fulfilled" ? bgResult.value : null;
+    const sprite = spriteResult.status === "fulfilled" ? spriteResult.value : null;
 
-    // Build the scene with the loaded assets
-    this.scene = new Scene(bg, sprite, this.net);
+    this.scene = new Scene(bg, sprite, this.net, () => this.openBlackjack());
     this.ui = new UIManager(this.canvas);
+    this.profileMenu = new ProfileMenu(this.canvas, this.username);
 
-    // Connect to the server and wait for the welcome message
     await new Promise<void>((resolve) => {
       this.net.on("welcome", (msg) => {
-        // Spawn the local player at the server's designated starting position
-        // (we start the player at the default, server will set it via welcome)
-        this.player = new Player(
-          this.username,
-          800,
-          500,
-          sprite,
-          this.input,
-          this.net
-        );
+        this.player = new Player(this.username, 800, 500, sprite, this.input, this.net);
 
         this.coffeeMachineInfo = msg.coffeeMachine;
         this.scene.coffeeMachine.lastRunAt = msg.coffeeMachine.lastRunAt;
         this.scene.coffeeMachine.lastRunBy = msg.coffeeMachine.runBy;
 
-        // Add all currently online players
+        this.tokens = msg.stats.tokens;
+        this.stats = { ...msg.stats };
+        this.profileMenu.updateTokens(this.tokens);
+        this.profileMenu.updateStats(this.stats);
+
         for (const p of msg.players) {
           this.scene.addRemotePlayer(p);
-          if (p.currentTask) {
-            this.scene.setRemotePlayerTask(p.id, p.currentTask);
-          }
+          if (p.currentTask) this.scene.setRemotePlayerTask(p.id, p.currentTask);
         }
+
+        // Blackjack is created after we know the token balance
+        this.blackjack = new BlackjackGame(
+          this.canvas,
+          this.tokens,
+          (delta) => this.handleBlackjackTokenChange(delta),
+          () => this.closeBlackjack()
+        );
 
         resolve();
       });
 
-      // Register all other network event handlers before connecting
       this.registerNetworkHandlers();
-
-      // Now actually connect (triggers 'welcome' from server)
       this.net.connect(this.username, this.geolocation);
     });
 
-    // Handle 'E' key for interactions
+    // ── Global key bindings ──────────────────────────────────────────────────────
+    this.input.onKeyPressed("tab", () => this.toggleProfile());
     this.input.onKeyPressed("e", () => this.handleInteractKey());
 
-    // Handle canvas resize
+    // Blackjack keys are only active while the overlay is open
+    for (const key of ["h", "s", "d", "enter", "escape", "arrowup", "arrowdown"]) {
+      this.input.onKeyPressed(key, () => {
+        if (this.overlay === "blackjack") this.blackjack.handleKey(key);
+        if (key === "escape" && this.overlay === "profile") this.overlay = "none";
+      });
+    }
+
     this.resizeCanvas();
     window.addEventListener("resize", () => this.resizeCanvas());
   }
 
-  // ── Network event subscriptions ──────────────────────────────────────────────
+  // ── Network handlers ──────────────────────────────────────────────────────────
 
   private registerNetworkHandlers(): void {
-    this.net.on("player_join", (msg) => {
-      this.scene.addRemotePlayer(msg.player);
-    });
+    this.net.on("player_join", (msg) => this.scene.addRemotePlayer(msg.player));
 
     this.net.on("player_leave", (msg) => {
       if (msg.playerId) this.scene.removeRemotePlayer(msg.playerId);
@@ -144,6 +153,8 @@ export class Game {
 
     this.net.on("task_end", (msg) => {
       this.scene.setRemotePlayerTask(msg.playerId, null);
+      // Optimistically update local stats when OUR own task ends
+      // (server sends token_update immediately after)
     });
 
     this.net.on("coffee_update", (msg) => {
@@ -151,16 +162,57 @@ export class Game {
       this.scene.coffeeMachine.lastRunAt = msg.lastRunAt;
       this.scene.coffeeMachine.lastRunBy = msg.runBy;
     });
+
+    this.net.on("token_update", (msg) => {
+      this.tokens = msg.tokens;
+      this.profileMenu.updateTokens(this.tokens);
+      this.blackjack?.setTokenBalance(this.tokens);
+
+      // Also bump the stats accumulated locally
+      this.stats.tokens = this.tokens;
+      this.profileMenu.updateStats(this.stats);
+    });
   }
 
-  // ── Interaction ──────────────────────────────────────────────────────────────
+  // ── Interaction ───────────────────────────────────────────────────────────────
 
   private handleInteractKey(): void {
+    if (this.overlay !== "none") return;
     if (!this.nearbyObject) return;
     this.nearbyObject.interact(this.username);
   }
 
-  // ── Game loop ────────────────────────────────────────────────────────────────
+  // ── Overlay management ────────────────────────────────────────────────────────
+
+  private toggleProfile(): void {
+    if (this.overlay === "profile") {
+      this.overlay = "none";
+    } else if (this.overlay === "none") {
+      this.overlay = "profile";
+    }
+    // Don't toggle from blackjack — use Esc there
+  }
+
+  private openBlackjack(): void {
+    if (this.overlay !== "none") return;
+    this.blackjack.setTokenBalance(this.tokens);
+    this.overlay = "blackjack";
+  }
+
+  private closeBlackjack(): void {
+    this.overlay = "none";
+  }
+
+  private handleBlackjackTokenChange(delta: number): void {
+    // Client-side token tracking during blackjack (optimistic).
+    // The server doesn't know about blackjack — tokens are managed locally here.
+    this.tokens = Math.max(0, this.tokens + delta);
+    this.profileMenu.updateTokens(this.tokens);
+    this.stats.tokens = this.tokens;
+    this.profileMenu.updateStats(this.stats);
+  }
+
+  // ── Game loop ─────────────────────────────────────────────────────────────────
 
   start(): void {
     this.lastTimestamp = performance.now();
@@ -173,31 +225,35 @@ export class Game {
   }
 
   private loop(timestamp: number): void {
-    const dt = Math.min((timestamp - this.lastTimestamp) / 1000, 0.1); // cap at 100ms
+    const dt = Math.min((timestamp - this.lastTimestamp) / 1000, 0.1);
     this.lastTimestamp = timestamp;
-
     this.update(dt);
     this.render();
-
     this.animFrameId = requestAnimationFrame((ts) => this.loop(ts));
   }
 
   // ── Update ────────────────────────────────────────────────────────────────────
 
   private update(dt: number): void {
-    // Update local player (movement + network position send)
-    this.player.move(dt, this.scene.worldWidth, this.scene.worldHeight);
+    // Pause world movement while an overlay is active
+    if (this.overlay === "none") {
+      this.player.move(dt, this.scene.mapBounds);
 
-    // Update scene (remote players + interaction proximity)
-    const previousNearby = this.nearbyObject;
-    this.nearbyObject = this.scene.update(dt, this.player);
+      const previousNearby = this.nearbyObject;
+      this.nearbyObject = this.scene.update(dt, this.player);
 
-    // If player walked away from an active interactable, call leave()
-    if (previousNearby && previousNearby !== this.nearbyObject) {
-      previousNearby.leave(this.username);
+      if (previousNearby && previousNearby !== this.nearbyObject) {
+        previousNearby.leave(this.username);
+      }
+    } else {
+      // Still update scene animations (remote players, etc.) but not the camera
+      this.scene.update(dt, this.player);
     }
 
-    // Update camera to follow the local player
+    if (this.overlay === "blackjack") {
+      this.blackjack.update(dt);
+    }
+
     this.camera.follow(
       this.player.x,
       this.player.y,
@@ -212,34 +268,41 @@ export class Game {
 
   private render(): void {
     const { ctx, canvas } = this;
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Scene (background + interactables + remote players)
+    // World
     this.scene.render(ctx, this.camera);
-
-    // Local player rendered on top
     this.player.render(ctx, this.camera);
 
-    // HUD (screen-space — no camera offset needed)
-    const onlinePlayers: Array<{ username: string; taskLabel?: string }> = [
-      { username: this.username },
-      ...this.scene.getRemotePlayers().map((rp) => {
-        const entry: { username: string; taskLabel?: string } = { username: rp.username };
-        if (rp.currentTask) {
-          entry.taskLabel = rp.currentTask.taskType === "sit" ? "📚" : "☕";
-        }
-        return entry;
-      }),
-    ];
+    // HUD (only when no overlay is blocking the view)
+    if (this.overlay !== "blackjack") {
+      const onlinePlayers: Array<{ username: string; taskLabel?: string }> = [
+        { username: this.username },
+        ...this.scene.getRemotePlayers().map((rp) => {
+          const entry: { username: string; taskLabel?: string } = { username: rp.username };
+          if (rp.currentTask) {
+            entry.taskLabel = rp.currentTask.taskType === "sit" ? "📚" : "☕";
+          }
+          return entry;
+        }),
+      ];
 
-    this.ui.draw(
-      ctx,
-      this.nearbyObject,
-      this.scene.tables,
-      this.coffeeMachineInfo,
-      onlinePlayers
-    );
+      this.ui.draw(
+        ctx,
+        this.overlay === "none" ? this.nearbyObject : null,
+        this.scene.tables,
+        this.coffeeMachineInfo,
+        onlinePlayers,
+        this.tokens
+      );
+    }
+
+    // Overlays
+    if (this.overlay === "profile") {
+      this.profileMenu.render(ctx);
+    } else if (this.overlay === "blackjack") {
+      this.blackjack.render(ctx);
+    }
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────────

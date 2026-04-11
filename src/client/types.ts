@@ -1,6 +1,5 @@
 /**
- * Client-side type definitions.
- * These mirror the server's types.ts but are compiled separately by esbuild.
+ * Client-side type definitions — mirrors src/server/types.ts.
  */
 
 export interface GeolocationData {
@@ -30,6 +29,14 @@ export interface CoffeeMachineInfo {
   runBy: string | null;
 }
 
+export interface PlayerStats {
+  sittingTodayMs: number;
+  sittingThisYearMs: number;
+  coffeesMadeToday: number;
+  coffeesMadeThisYear: number;
+  tokens: number;
+}
+
 // ── Client → Server ───────────────────────────────────────────────────────────
 
 export type C2SMessage =
@@ -47,6 +54,7 @@ export type S2CMessage =
       playerId: string;
       players: PlayerInfo[];
       coffeeMachine: CoffeeMachineInfo;
+      stats: PlayerStats;
     }
   | { type: "player_join"; player: PlayerInfo }
   | { type: "player_move"; playerId: string; x: number; y: number }
@@ -65,4 +73,5 @@ export type S2CMessage =
       targetId: string;
       duration: number;
     }
-  | { type: "coffee_update"; lastRunAt: number; runBy: string };
+  | { type: "coffee_update"; lastRunAt: number; runBy: string }
+  | { type: "token_update"; tokens: number; delta: number };

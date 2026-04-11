@@ -1,0 +1,5 @@
+Add a menu/overview for a user to look at all the stats ralated to their profile. Such as time sat at a table seperated into total today and total this year.
+The user should recieve a token for every hour sat at a table and coffes made. 
+Creata a interactable minigame where you can gamble with the tokens earned. ex blackjack.
+Add a interactable bookshelf that redirects the user to another website. ode snot matter what. 
+Add functionallity for sepcifying the boundingbox for the map,

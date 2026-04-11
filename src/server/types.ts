@@ -1,9 +1,8 @@
 /**
  * Shared type definitions for the WebSocket protocol between client and server.
- * Both the game server and client use these message shapes.
  */
 
-// ── Geolocation ──────────────────────────────────────────────────────────────
+// ── Geolocation ───────────────────────────────────────────────────────────────
 
 export interface GeolocationData {
   latitude: number;
@@ -13,28 +12,42 @@ export interface GeolocationData {
 
 // ── Snapshot types sent over the wire ────────────────────────────────────────
 
-/** A player's current state as broadcast to all clients */
 export interface PlayerInfo {
   id: string;
   username: string;
   x: number;
   y: number;
-  /** The task the player is currently doing, if any */
   currentTask: ActiveTask | null;
 }
 
-/** A task currently in progress for a player */
 export interface ActiveTask {
   taskType: TaskType;
   targetId: string;
-  startedAt: number; // Unix ms timestamp
+  startedAt: number;
 }
 
 export type TaskType = "sit" | "coffee";
 
 export interface CoffeeMachineInfo {
-  lastRunAt: number | null; // Unix ms timestamp
-  runBy: string | null;     // username of last person who made coffee
+  lastRunAt: number | null;
+  runBy: string | null;
+}
+
+/**
+ * Lifetime stats for a player, computed from task history.
+ * Sent in the welcome message and used by the Profile overlay.
+ */
+export interface PlayerStats {
+  /** Total sitting duration for today (ms) */
+  sittingTodayMs: number;
+  /** Total sitting duration this calendar year (ms) */
+  sittingThisYearMs: number;
+  /** Number of coffees made today */
+  coffeesMadeToday: number;
+  /** Number of coffees made this calendar year */
+  coffeesMadeThisYear: number;
+  /** Current token balance */
+  tokens: number;
 }
 
 // ── Client → Server messages ──────────────────────────────────────────────────
@@ -49,20 +62,17 @@ export type C2SMessage =
 // ── Server → Client messages ──────────────────────────────────────────────────
 
 export type S2CMessage =
-  /** Sent to a newly connected client with the full current world state */
   | {
       type: "welcome";
       playerId: string;
       players: PlayerInfo[];
       coffeeMachine: CoffeeMachineInfo;
+      /** The connecting player's own stats & token balance */
+      stats: PlayerStats;
     }
-  /** Broadcast when a new player joins */
   | { type: "player_join"; player: PlayerInfo }
-  /** Broadcast when a player moves */
   | { type: "player_move"; playerId: string; x: number; y: number }
-  /** Broadcast when a player disconnects */
   | { type: "player_leave"; playerId: string }
-  /** Broadcast when a player starts a task */
   | {
       type: "task_start";
       playerId: string;
@@ -70,13 +80,13 @@ export type S2CMessage =
       targetId: string;
       startedAt: number;
     }
-  /** Broadcast when a player ends a task */
   | {
       type: "task_end";
       playerId: string;
       taskType: TaskType;
       targetId: string;
-      duration: number; // ms
+      duration: number;
     }
-  /** Broadcast when the coffee machine is used */
-  | { type: "coffee_update"; lastRunAt: number; runBy: string };
+  | { type: "coffee_update"; lastRunAt: number; runBy: string }
+  /** Private message: sent only to the player whose token balance changed */
+  | { type: "token_update"; tokens: number; delta: number };

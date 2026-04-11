@@ -1,23 +1,26 @@
 /**
- * Database layer using in-memory storage with JSON file persistence.
- * Tracks online sessions, completed tasks, and coffee machine state.
+ * Database layer — in-memory store with JSON file persistence.
  *
- * Data is saved to data/game-data.json whenever it changes.
+ * Tracks:
+ *  - Online sessions (geolocation, online status)
+ *  - Completed tasks (type, duration, timestamps)
+ *  - Coffee machine state
+ *  - Token balances (keyed by lowercase username for persistence across sessions)
  */
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import type { GeolocationData, TaskType, CoffeeMachineInfo } from "./types.js";
+import type { GeolocationData, TaskType, CoffeeMachineInfo, PlayerStats } from "./types.js";
 
-// ── Data shapes stored in the DB ──────────────────────────────────────────────
+// ── Data shapes ───────────────────────────────────────────────────────────────
 
 export interface Session {
   playerId: string;
   username: string;
   isOnline: boolean;
-  joinedAt: number;       // Unix ms
-  lastSeen: number;       // Unix ms
+  joinedAt: number;
+  lastSeen: number;
   geolocation?: GeolocationData;
 }
 
@@ -27,30 +30,35 @@ export interface TaskRecord {
   username: string;
   taskType: TaskType;
   targetId: string;
-  startedAt: number;  // Unix ms
-  endedAt: number;    // Unix ms
-  duration: number;   // ms
+  startedAt: number;
+  endedAt: number;
+  duration: number;
+  /** Tokens awarded for this task */
+  tokensEarned: number;
 }
 
 interface PersistedData {
   sessions: Session[];
   tasks: TaskRecord[];
   coffeeMachine: CoffeeMachineInfo;
+  /** Token balances by lowercase username — survives session reconnects */
+  tokens: Record<string, number>;
 }
 
-// ── Database class ────────────────────────────────────────────────────────────
+// ── Database ──────────────────────────────────────────────────────────────────
 
 export class Database {
   private sessions: Map<string, Session> = new Map();
   private tasks: TaskRecord[] = [];
   private coffeeMachine: CoffeeMachineInfo = { lastRunAt: null, runBy: null };
+  /** Persistent token balances keyed by lowercase username */
+  private tokens: Map<string, number> = new Map();
   private dataFilePath: string;
 
   constructor() {
     const __dirname = dirname(fileURLToPath(import.meta.url));
     const dataDir = join(__dirname, "../../data");
 
-    // Ensure the data directory exists
     if (!existsSync(dataDir)) {
       mkdirSync(dataDir, { recursive: true });
     }
@@ -59,42 +67,42 @@ export class Database {
     this.load();
   }
 
-  // ── Persistence ─────────────────────────────────────────────────────────────
+  // ── Persistence ──────────────────────────────────────────────────────────────
 
-  /** Load data from the JSON file on startup */
   private load(): void {
     if (!existsSync(this.dataFilePath)) return;
     try {
       const raw = readFileSync(this.dataFilePath, "utf-8");
       const data: PersistedData = JSON.parse(raw) as PersistedData;
-      // Mark all stored sessions as offline (server restarted)
       for (const session of data.sessions) {
         session.isOnline = false;
         this.sessions.set(session.playerId, session);
       }
       this.tasks = data.tasks ?? [];
       this.coffeeMachine = data.coffeeMachine ?? { lastRunAt: null, runBy: null };
+      for (const [username, balance] of Object.entries(data.tokens ?? {})) {
+        this.tokens.set(username, balance);
+      }
     } catch {
       console.warn("[Database] Could not load game-data.json, starting fresh.");
     }
   }
 
-  /** Persist current state to disk */
   private save(): void {
+    const tokenObj: Record<string, number> = {};
+    for (const [k, v] of this.tokens) tokenObj[k] = v;
+
     const data: PersistedData = {
       sessions: Array.from(this.sessions.values()),
       tasks: this.tasks,
       coffeeMachine: this.coffeeMachine,
+      tokens: tokenObj,
     };
     writeFileSync(this.dataFilePath, JSON.stringify(data, null, 2), "utf-8");
   }
 
-  // ── Session management ───────────────────────────────────────────────────────
+  // ── Session management ────────────────────────────────────────────────────────
 
-  /**
-   * Called when a player connects and joins the study hall.
-   * Creates or updates their session record.
-   */
   upsertSession(
     playerId: string,
     username: string,
@@ -102,21 +110,20 @@ export class Database {
   ): Session {
     const now = Date.now();
     const existing = this.sessions.get(playerId);
-    const resolvedGeolocation = geolocation ?? existing?.geolocation;
+    const resolvedGeo = geolocation ?? existing?.geolocation;
     const session: Session = {
       playerId,
       username,
       isOnline: true,
       joinedAt: existing?.joinedAt ?? now,
       lastSeen: now,
-      ...(resolvedGeolocation ? { geolocation: resolvedGeolocation } : {}),
+      ...(resolvedGeo ? { geolocation: resolvedGeo } : {}),
     };
     this.sessions.set(playerId, session);
     this.save();
     return session;
   }
 
-  /** Called when a player closes the page or disconnects */
   markOffline(playerId: string): void {
     const session = this.sessions.get(playerId);
     if (!session) return;
@@ -126,7 +133,6 @@ export class Database {
     this.save();
   }
 
-  /** Update the stored geolocation for a player */
   updateGeolocation(playerId: string, geolocation: GeolocationData): void {
     const session = this.sessions.get(playerId);
     if (!session) return;
@@ -136,21 +142,19 @@ export class Database {
     this.save();
   }
 
-  /** Returns all sessions (online and offline) */
   getAllSessions(): Session[] {
     return Array.from(this.sessions.values());
   }
 
-  /** Returns only currently online sessions */
   getOnlineSessions(): Session[] {
     return Array.from(this.sessions.values()).filter((s) => s.isOnline);
   }
 
-  // ── Task tracking ────────────────────────────────────────────────────────────
+  // ── Task tracking ─────────────────────────────────────────────────────────────
 
   /**
-   * Record a completed task.
-   * Called when a player stands up from a table or finishes an activity.
+   * Record a completed task, compute and award tokens.
+   * Returns the task record and how many tokens were earned.
    */
   addTask(
     playerId: string,
@@ -159,7 +163,17 @@ export class Database {
     targetId: string,
     startedAt: number,
     endedAt: number
-  ): TaskRecord {
+  ): { record: TaskRecord; tokensEarned: number } {
+    const duration = endedAt - startedAt;
+
+    // Token rules:
+    //  sit   → 1 token per full hour
+    //  coffee → 1 token per brew
+    const tokensEarned =
+      taskType === "sit"
+        ? Math.floor(duration / 3_600_000)
+        : 1; // coffee
+
     const record: TaskRecord = {
       id: `${playerId}_${taskType}_${startedAt}`,
       playerId,
@@ -168,30 +182,104 @@ export class Database {
       targetId,
       startedAt,
       endedAt,
-      duration: endedAt - startedAt,
+      duration,
+      tokensEarned,
     };
     this.tasks.push(record);
+
+    if (tokensEarned > 0) {
+      this.addTokens(username, tokensEarned);
+    }
+
     this.save();
-    return record;
+    return { record, tokensEarned };
   }
 
-  /** Get all task records, optionally filtered by player */
   getTasks(playerId?: string): TaskRecord[] {
     if (playerId) return this.tasks.filter((t) => t.playerId === playerId);
     return [...this.tasks];
   }
 
-  // ── Coffee machine ───────────────────────────────────────────────────────────
+  // ── Stats ──────────────────────────────────────────────────────────────────────
 
-  /** Record a coffee machine run and return the updated state */
+  /**
+   * Compute the ProfileStats for a given username from task history.
+   */
+  getPlayerStats(username: string): PlayerStats {
+    const lc = username.toLowerCase();
+    const todayStart = startOfToday();
+    const yearStart = startOfYear();
+
+    let sittingTodayMs = 0;
+    let sittingThisYearMs = 0;
+    let coffeesMadeToday = 0;
+    let coffeesMadeThisYear = 0;
+
+    for (const task of this.tasks) {
+      if (task.username.toLowerCase() !== lc) continue;
+
+      const inYear = task.endedAt >= yearStart;
+      const inDay = task.endedAt >= todayStart;
+
+      if (task.taskType === "sit") {
+        if (inYear) sittingThisYearMs += task.duration;
+        if (inDay) sittingTodayMs += task.duration;
+      } else if (task.taskType === "coffee") {
+        if (inYear) coffeesMadeThisYear++;
+        if (inDay) coffeesMadeToday++;
+      }
+    }
+
+    return {
+      sittingTodayMs,
+      sittingThisYearMs,
+      coffeesMadeToday,
+      coffeesMadeThisYear,
+      tokens: this.getTokens(username),
+    };
+  }
+
+  // ── Tokens ────────────────────────────────────────────────────────────────────
+
+  /** Get the current token balance for a username */
+  getTokens(username: string): number {
+    return this.tokens.get(username.toLowerCase()) ?? 0;
+  }
+
+  /** Add (or subtract) tokens for a username and return the new balance */
+  addTokens(username: string, delta: number): number {
+    const lc = username.toLowerCase();
+    const current = this.tokens.get(lc) ?? 0;
+    const next = Math.max(0, current + delta);
+    this.tokens.set(lc, next);
+    this.save();
+    return next;
+  }
+
+  // ── Coffee machine ────────────────────────────────────────────────────────────
+
   recordCoffeeRun(username: string): CoffeeMachineInfo {
     this.coffeeMachine = { lastRunAt: Date.now(), runBy: username };
     this.save();
     return { ...this.coffeeMachine };
   }
 
-  /** Get the current coffee machine state */
   getCoffeeMachine(): CoffeeMachineInfo {
     return { ...this.coffeeMachine };
   }
+}
+
+// ── Date helpers ──────────────────────────────────────────────────────────────
+
+function startOfToday(): number {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
+function startOfYear(): number {
+  const d = new Date();
+  d.setMonth(0, 1);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
 }
